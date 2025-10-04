@@ -10,53 +10,20 @@ import RoomController from "./controllers/RoomController.js";
 config();
 const app = express();
 const socketServer = createServer(app);
+socketServer.listen(process.env.PORT);
 const io = new SocketServer(socketServer, {
   cors: {
     origin: "http://localhost:3000"
   }
 });
 
-const port = process.env.PORT;
-socketServer.listen(port, () => {
-  console.log(`Listening on ${port}`);
-});
-
 const server = new Server();
 const roomController = new RoomController(server, io);
 
 io.on('connection', (socket: Socket) => {
-  socket.on("create-room", (payload) => roomController.handleCreateRoom(socket, payload));
-  socket.on('join-room', (payload) => {
-    const room: Room | undefined = server.getRoom(payload.id || payload.enterRoomId);
-    if (room && room.players.length < 4) {
-      if (room.isInside(payload.mainPlayer.username)) {
-        socket.emit('send-notification', {
-          type: 'error',
-          message: 'Já existe um jogador com esse nome na sala informada.'
-        });
-        return;
-      }
-      const newPlayer = new Player(socket.id, payload.mainPlayer.username, payload.mainPlayer.avatar);
-      room.addPlayer(newPlayer);
-
-      socket.join(room.id);
-      console.log(room)
-      io.to(room.id).emit('player-joined', room);
-    } else {
-      socket.emit('room-error', 'A sala está cheia ou não existe.');
-    }
-  });
-
-  // socket.on('left-room', (room: any) => {
-  //   if (room.id) {
-  //     removePlayer(room.id, room.mainPlayer);
-  //     const players = getRoom(room.id)?.players;
-  //     if (players && room.mainPlayer.roomOwner && players.length > 0) {
-  //       players[0].roomOwner = true;
-  //     }
-  //     io.to(room.id).emit('player-left', players, room.mainPlayer);
-  //   }
-  // });
+  socket.on('create-room', payload => roomController.createRoom(socket, payload));
+  socket.on('join-room', payload => roomController.joinRoom(socket, payload));
+  socket.on('left-room', payload => roomController.leaveRoom(socket, payload));
 
   // socket.on('game-start', (room: any, game: Game) => {
   //   const players = getRoom(room.id)?.players;

@@ -3,16 +3,18 @@ import Room from "./Room.js";
 export default class Server {
     rooms: Array<Room> = [];
     
-    getRoom(roomId: string): Room | undefined {
-        return this.rooms.find(x => x.id === roomId);
+    getRoom(roomId: string): Room {
+        const room = this.rooms.find(x => x.id === roomId);
+        if (!room) throw new Error('Sala não encontrada.');
+        return room;
     }
 
     addRoom(room: Room): void {
         this.rooms.push(room);
     }
 
-    removeRoom(roomId: string): void {
-        this.rooms = this.rooms.filter(x => x.id !== roomId);
+    cleanEmptyRooms(): void {
+        this.rooms = this.rooms.filter(x => x.players.length > 0);
     }
 
     playersOnline(): number {
