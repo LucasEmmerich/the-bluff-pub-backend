@@ -1,3 +1,4 @@
+import Game from "./Game.js";
 import Player from "./Player.js";
 
 export default class Room {
@@ -5,6 +6,8 @@ export default class Room {
     id: string = '';
     roomOwner?: Player = undefined;
     players: Array<Player> = [];
+    game?: Game;
+
     constructor(id: string, roomOwner: Player) {
         this.id = id;
         this.roomOwner = roomOwner;
