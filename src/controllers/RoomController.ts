@@ -50,8 +50,6 @@ export default class RoomController {
 
       this.io.to(room.id).emit("player-left", room, playerThatLeft);
       socket.leave(room.id);
-
-      this.server.cleanEmptyRooms();
     } catch (error) {
       console.error(error);
     }
