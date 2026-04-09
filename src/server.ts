@@ -30,17 +30,10 @@ const gameController = new GameController(server, io);
 
 io.on('connection', (socket: Socket) => {
 
-  // Room
   socket.on('create-room', payload => roomController.createRoom(socket, payload));
   socket.on('join-room',   payload => roomController.joinRoom(socket, payload));
   socket.on('left-room',   payload => roomController.leaveRoom(socket, payload));
 
-  // Game
   socket.on('game-start',  payload => gameController.startGame(socket, payload));
   socket.on('drop-cards',  payload => gameController.dropCards(socket, payload));
-
-  // socket.on('avatar-change', ({ id, changeForUser, players, avatar }: any) => {
-  //   players.find((x: Player) => x.username === changeForUser).avatar = avatar;
-  //   io.to(id).emit('avatar-changed', players);
-  // });
 });

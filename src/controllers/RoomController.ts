@@ -34,6 +34,7 @@ export default class RoomController {
       room.addPlayer(newPlayer);
 
       socket.join(room.id);
+      socket.emit("self-joined", newPlayer);
       this.io.to(room.id).emit("player-joined", room);
     } catch (error) {
       console.error(error);
@@ -42,7 +43,6 @@ export default class RoomController {
 
   public leaveRoom(socket: Socket, payload: { id: string, mainPlayer: Player }) {
     try {
-      // condition to handle tab closing without payload
       if(!payload.id) return;
 
       const room = this.server.getRoom(payload.id);
