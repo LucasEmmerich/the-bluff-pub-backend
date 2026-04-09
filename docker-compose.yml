@@ -1,0 +1,14 @@
+services:
+  bluff-pub-backend:
+    build: .
+    container_name: bluff-pub-backend
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      CORS_ORIGIN: https://bluff-pub.lucasemmerich.dev
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    external: true

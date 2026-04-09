@@ -19,7 +19,7 @@ const socketServer = createServer(app);
 socketServer.listen(process.env.PORT);
 const io = new SocketServer(socketServer, {
   cors: {
-    origin: "http://localhost:3000"
+    origin: process.env.CORS_ORIGIN || "http://localhost:3000"
   }
 });
 
