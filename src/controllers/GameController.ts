@@ -15,15 +15,40 @@ export default class GameController {
         this.io = io;
     }
 
+    private currentPlayerHasNoCards(roomId: string): boolean {
+        const room = this.server.getRoom(roomId);
+        if (!room.game) return false;
+        const hand = room.game.hands.find(h => h.player.id === room.game!.turn.id);
+        return (hand?.cards.length ?? 1) === 0;
+    }
+
+    private resolveSkips(roomId: string) {
+        const room = this.server.getRoom(roomId);
+        if (!room.game || !room.game.matchStarted) return;
+        if (this.currentPlayerHasNoCards(roomId)) {
+            room.game.skipTurn();
+            this.io.to(roomId).emit('turn-skipped', room.game);
+            this.resolveSkips(roomId);
+        } else {
+            this.startTurnTimer(roomId);
+        }
+    }
+
     private startTurnTimer(roomId: string) {
         this.clearTurnTimer(roomId);
         const timer = setTimeout(() => {
             try {
                 const room = this.server.getRoom(roomId);
                 if (!room.game || !room.game.matchStarted) return;
+                if (this.currentPlayerHasNoCards(roomId)) {
+                    room.game.skipTurn();
+                    this.io.to(roomId).emit('turn-skipped', room.game);
+                    this.resolveSkips(roomId);
+                    return;
+                }
                 const result = room.game.forfeitTurn();
                 this.io.to(roomId).emit('turn-timeout', { game: room.game, result });
-                if (!result.gameOver) setTimeout(() => this.startTurnTimer(roomId), ANIMATION_DELAY_MS);
+                if (!result.gameOver) setTimeout(() => this.resolveSkips(roomId), ANIMATION_DELAY_MS);
             } catch (e) { console.error(e); }
         }, TURN_TIMEOUT_MS);
         this.turnTimers.set(roomId, timer);
@@ -47,7 +72,9 @@ export default class GameController {
             }
             room.game = new Game(room.players);
             this.io.to(room.id).emit('game-started', room.game);
-            this.startTurnTimer(room.id);
+            const totalCards = 5 * room.players.length;
+            const dealAnimationMs = 200 + (totalCards - 1) * 180 + 750 + 400;
+            setTimeout(() => this.startTurnTimer(room.id), dealAnimationMs);
         } catch (error) {
             console.error(error);
         }
@@ -69,7 +96,7 @@ export default class GameController {
 
             if (!room.game!.matchStarted) return;
             const delay = move.liarCall ? ANIMATION_DELAY_MS : 0;
-            setTimeout(() => this.startTurnTimer(room.id), delay);
+            setTimeout(() => this.resolveSkips(room.id), delay);
         } catch (error) {
             console.error(error);
         }

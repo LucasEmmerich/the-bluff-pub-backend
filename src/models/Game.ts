@@ -135,6 +135,10 @@ export default class Game {
         this.round++;
     }
 
+    public skipTurn(): void {
+        this.setNextPlayer();
+    }
+
     public forfeitTurn(): BluffResult {
         const currentHand = this.hands.find(h => h.player.id === this.turn.id)!;
         currentHand.life--;
