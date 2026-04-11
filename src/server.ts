@@ -36,4 +36,10 @@ io.on('connection', (socket: Socket) => {
 
   socket.on('game-start',  payload => gameController.startGame(socket, payload));
   socket.on('drop-cards',  payload => gameController.dropCards(socket, payload));
+
+  socket.on('webrtc-join',   ({ roomId }: { roomId: string }) => socket.to(roomId).emit('webrtc-user-joined', { from: socket.id }));
+  socket.on('webrtc-offer',  ({ to, offer }: { to: string; offer: unknown })    => io.to(to).emit('webrtc-offer',  { from: socket.id, offer }));
+  socket.on('webrtc-answer', ({ to, answer }: { to: string; answer: unknown })  => io.to(to).emit('webrtc-answer', { from: socket.id, answer }));
+  socket.on('webrtc-ice',    ({ to, candidate }: { to: string; candidate: unknown }) => io.to(to).emit('webrtc-ice', { from: socket.id, candidate }));
+  socket.on('webrtc-leave',  ({ roomId }: { roomId: string }) => socket.to(roomId).emit('webrtc-user-left', { from: socket.id }));
 });
