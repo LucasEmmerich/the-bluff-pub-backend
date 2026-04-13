@@ -28,8 +28,8 @@ export default class Room {
 
     removePlayer(playerId: string): Player {
         const player = this.getPlayer(playerId);
-        if (this.isOwner(playerId)) this.changeRoomOwner(this.players.find(x => x.id !== playerId)!);
         this.players = this.players.filter(x => x.id !== playerId);
+        if (this.isOwner(playerId)) this.roomOwner = this.players[0];
         return player;
     }
 

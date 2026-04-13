@@ -20,7 +20,11 @@ export default class Server {
 
     public getRoom = (roomId: string) => this.rooms.find(x => x.id === roomId)!;
 
+    public findRoomBySocketId = (socketId: string) => this.rooms.find(r => r.players.some(p => p.id === socketId));
+
     public addRoom = (room: Room) => this.rooms.push(room);
+
+    public removeRoom = (roomId: string) => { this.rooms = this.rooms.filter(r => r.id !== roomId); };
 
     private cleanEmptyRooms = () => {
         this.rooms = this.rooms.filter(x => x.players.length > 0);

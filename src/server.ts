@@ -43,11 +43,12 @@ io.on('connection', (socket: Socket) => {
         break;
       }
     }
+    roomController.handleDisconnect(socket);
   });
 
   socket.on('create-room', payload => roomController.createRoom(socket, payload));
   socket.on('join-room',   payload => roomController.joinRoom(socket, payload));
-  socket.on('left-room',   payload => roomController.leaveRoom(socket, payload));
+  socket.on('left-room',   payload => roomController.leaveRoom(socket, payload.id));
 
   socket.on('game-start',  payload => gameController.startGame(socket, payload));
   socket.on('drop-cards',  payload => gameController.dropCards(socket, payload));

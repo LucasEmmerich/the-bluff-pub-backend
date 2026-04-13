@@ -3,7 +3,8 @@ import Game, { Move } from "../models/Game.js";
 import { Socket, Server as SocketIOServer } from "socket.io";
 
 const TURN_TIMEOUT_MS = 20000;
-const ANIMATION_DELAY_MS = 4000;
+const INTER_TURN_DELAY_MS = 2000;
+const LIFE_LOSS_REVEAL_MS = 3000;
 
 export default class GameController {
     private server: Server;
@@ -48,7 +49,7 @@ export default class GameController {
                 }
                 const result = room.game.forfeitTurn();
                 this.io.to(roomId).emit('turn-timeout', { game: room.game, result });
-                if (!result.gameOver) setTimeout(() => this.resolveSkips(roomId), ANIMATION_DELAY_MS);
+                if (!result.gameOver) setTimeout(() => this.resolveSkips(roomId), LIFE_LOSS_REVEAL_MS + INTER_TURN_DELAY_MS);
             } catch (e) { console.error(e); }
         }, TURN_TIMEOUT_MS);
         this.turnTimers.set(roomId, timer);
@@ -71,9 +72,17 @@ export default class GameController {
                 return;
             }
             room.game = new Game(room.players);
-            this.io.to(room.id).emit('game-started', room.game);
             const totalCards = 5 * room.players.length;
             const dealAnimationMs = 200 + (totalCards - 1) * 180 + 750 + 400;
+            this.io.to(room.id).emit('game-started', {
+                ...room.game,
+                timing: {
+                    turnMs: TURN_TIMEOUT_MS,
+                    interTurnDelayMs: INTER_TURN_DELAY_MS,
+                    lifeLossRevealMs: LIFE_LOSS_REVEAL_MS,
+                    dealAnimationMs,
+                }
+            });
             setTimeout(() => this.startTurnTimer(room.id), dealAnimationMs);
         } catch (error) {
             console.error(error);
@@ -95,7 +104,7 @@ export default class GameController {
             }
 
             if (!room.game!.matchStarted) return;
-            const delay = move.liarCall ? ANIMATION_DELAY_MS : 0;
+            const delay = move.liarCall ? LIFE_LOSS_REVEAL_MS + INTER_TURN_DELAY_MS : INTER_TURN_DELAY_MS;
             setTimeout(() => this.resolveSkips(room.id), delay);
         } catch (error) {
             console.error(error);

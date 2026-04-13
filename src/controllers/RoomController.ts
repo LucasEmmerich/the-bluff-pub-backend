@@ -41,17 +41,27 @@ export default class RoomController {
     }
   }
 
-  public leaveRoom(socket: Socket, payload: { id: string, mainPlayer: Player }) {
+  public leaveRoom(socket: Socket, roomId: string) {
     try {
-      if(!payload.id) return;
+      const room = this.server.getRoom(roomId);
+      if (!room) return;
 
-      const room = this.server.getRoom(payload.id);
       const playerThatLeft = room.removePlayer(socket.id);
 
-      this.io.to(room.id).emit("player-left", room, playerThatLeft);
+      if (room.players.length === 0) {
+        this.server.removeRoom(room.id);
+      } else {
+        this.io.to(room.id).emit("player-left", room, playerThatLeft);
+      }
+
       socket.leave(room.id);
     } catch (error) {
       console.error(error);
     }
+  }
+
+  public handleDisconnect(socket: Socket) {
+    const room = this.server.findRoomBySocketId(socket.id);
+    if (room) this.leaveRoom(socket, room.id);
   }
 }
