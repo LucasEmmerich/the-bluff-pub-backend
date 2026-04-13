@@ -12,7 +12,7 @@ const app = express();
 
 app.use(express.static(path.join(process.cwd(), "public")));
 app.get("/login", (req, res) => {
-  
+
 });
 
 const socketServer = createServer(app);
@@ -23,12 +23,27 @@ const io = new SocketServer(socketServer, {
   }
 });
 
-const server = new Server(io);
+const activeSessions = new Map<string, string>();
 
+const server = new Server(io, activeSessions);
 const roomController = new RoomController(server, io);
 const gameController = new GameController(server, io);
 
 io.on('connection', (socket: Socket) => {
+
+  socket.on('register-session', (sessionId: string) => {
+    activeSessions.set(sessionId, socket.id);
+    socket.emit('server-info', server.getServerInfo());
+  });
+
+  socket.on('disconnect', () => {
+    for (const [sessionId, socketId] of activeSessions) {
+      if (socketId === socket.id) {
+        activeSessions.delete(sessionId);
+        break;
+      }
+    }
+  });
 
   socket.on('create-room', payload => roomController.createRoom(socket, payload));
   socket.on('join-room',   payload => roomController.joinRoom(socket, payload));
@@ -42,4 +57,6 @@ io.on('connection', (socket: Socket) => {
   socket.on('webrtc-answer', ({ to, answer }: { to: string; answer: unknown })  => io.to(to).emit('webrtc-answer', { from: socket.id, answer }));
   socket.on('webrtc-ice',    ({ to, candidate }: { to: string; candidate: unknown }) => io.to(to).emit('webrtc-ice', { from: socket.id, candidate }));
   socket.on('webrtc-leave',  ({ roomId }: { roomId: string }) => socket.to(roomId).emit('webrtc-user-left', { from: socket.id }));
+
+  socket.on('ping-check', (timestamp: number) => socket.emit('pong-check', timestamp));
 });

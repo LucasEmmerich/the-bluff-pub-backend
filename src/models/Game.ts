@@ -13,14 +13,14 @@ const DECK: Array<Card> = [
     { id: 10, name: 'Queen', values: ['Queen'],               img: '/cards/queen.png' },
     { id: 11, name: 'Queen', values: ['Queen'],               img: '/cards/queen.png' },
     { id: 12, name: 'Queen', values: ['Queen'],               img: '/cards/queen.png' },
-    { id: 13, name: 'Ace',   values: ['Ace'],                 img: '/cards/ace.png' },
-    { id: 14, name: 'Ace',   values: ['Ace'],                 img: '/cards/ace.png' },
-    { id: 15, name: 'Ace',   values: ['Ace'],                 img: '/cards/ace.png' },
-    { id: 16, name: 'Ace',   values: ['Ace'],                 img: '/cards/ace.png' },
-    { id: 17, name: 'Ace',   values: ['Ace'],                 img: '/cards/ace.png' },
-    { id: 18, name: 'Ace',   values: ['Ace'],                 img: '/cards/ace.png' },
-    { id: 19, name: 'Joker', values: ['King', 'Queen', 'Ace'], img: '/cards/joker.png' },
-    { id: 20, name: 'Joker', values: ['King', 'Queen', 'Ace'], img: '/cards/joker.png' },
+    { id: 13, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
+    { id: 14, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
+    { id: 15, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
+    { id: 16, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
+    { id: 17, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
+    { id: 18, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
+    { id: 19, name: 'Joker', values: ['King', 'Queen', 'Jack'], img: '/cards/joker.png' },
+    { id: 20, name: 'Joker', values: ['King', 'Queen', 'Jack'], img: '/cards/joker.png' },
 ];
 
 const INITIAL_PLAYER_LIFE: number = 3;
@@ -61,8 +61,8 @@ export type BluffResult = {
 
 export default class Game {
     round: number;
-    cardTypes: Array<'King' | 'Queen' | 'Ace'> = ['King', 'Queen', 'Ace'];
-    cardType: 'King' | 'Queen' | 'Ace';
+    cardTypes: Array<'King' | 'Queen' | 'Jack'> = ['King', 'Queen', 'Jack'];
+    cardType: 'King' | 'Queen' | 'Jack';
     players: Player[];
     turn: Player;
     matchStarted: boolean;
@@ -81,7 +81,7 @@ export default class Game {
     }
 
     private getShuffledDeck = (): Card[] => [...DECK].sort(() => Math.random() - 0.5);
-    private getRandomCardType = (): 'King' | 'Queen' | 'Ace' => this.cardTypes[Math.floor(Math.random() * this.cardTypes.length)];
+    private getRandomCardType = (): 'King' | 'Queen' | 'Jack' => this.cardTypes[Math.floor(Math.random() * this.cardTypes.length)];
     private getRandomPlayer = (): Player => this.players[Math.floor(Math.random() * this.players.length)];
 
     private dealHands = (): Hand[] => {

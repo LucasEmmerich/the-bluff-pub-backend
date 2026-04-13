@@ -63,11 +63,11 @@ export default class GameController {
         try {
             const room = this.server.getRoom(payload.room.id);
             if (room.roomOwner?.id !== payload.player.id) {
-                socket.emit('send-notification', { type: 'error', message: 'Apenas o dono da mesa pode iniciar a partida.' });
+                socket.emit('send-notification', { type: 'error', message: 'Only the table owner can start the game.' });
                 return;
             }
             if (room.players.length < 2) {
-                socket.emit('send-notification', { type: 'error', message: 'Pelo menos 2 jogadores são necessários.' });
+                socket.emit('send-notification', { type: 'error', message: 'At least 2 players are required.' });
                 return;
             }
             room.game = new Game(room.players);

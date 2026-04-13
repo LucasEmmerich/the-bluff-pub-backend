@@ -1,11 +1,14 @@
 import Room from "./Room.js";
 import { Server as SocketIOServer } from "socket.io";
+
 export default class Server {
     private io: SocketIOServer;
+    private activeSessions: Map<string, string>;
     rooms: Array<Room> = [];
 
-    constructor(io: SocketIOServer) {
+    constructor(io: SocketIOServer, activeSessions: Map<string, string>) {
         this.io = io;
+        this.activeSessions = activeSessions;
         this.registerEvents();
     }
 
@@ -14,7 +17,7 @@ export default class Server {
         setInterval(this.updateServerInfo, 10000);
         console.log('Server events registered.');
     }
-    
+
     public getRoom = (roomId: string) => this.rooms.find(x => x.id === roomId)!;
 
     public addRoom = (room: Room) => this.rooms.push(room);
@@ -23,11 +26,13 @@ export default class Server {
         this.rooms = this.rooms.filter(x => x.players.length > 0);
     }
 
+    public getServerInfo = () => ({
+        online: this.activeSessions.size,
+        playing: this.rooms.reduce((acc, room) => acc + room.players.length, 0),
+        rooms: this.rooms.length
+    });
+
     private updateServerInfo = () => {
-        const serverInfo =  { 
-            players: this.rooms.reduce((acc, room) => acc + room.players.length, 0), 
-            rooms: this.rooms.length 
-        };
-        this.io.emit('server-info', serverInfo);
+        this.io.emit('server-info', this.getServerInfo());
     }
 }
