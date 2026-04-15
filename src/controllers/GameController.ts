@@ -5,6 +5,7 @@ import { Socket, Server as SocketIOServer } from "socket.io";
 const TURN_TIMEOUT_MS = 20000;
 const INTER_TURN_DELAY_MS = 2000;
 const LIFE_LOSS_REVEAL_MS = 3000;
+const BLUFF_CALL_ANIM_MS = 2000;
 
 export default class GameController {
     private server: Server;
@@ -64,6 +65,12 @@ export default class GameController {
         if (existing) { clearTimeout(existing); this.turnTimers.delete(roomId); }
     }
 
+    public bluffIntent(_socket: Socket, payload: { room: { id: string } }) {
+        try {
+            this.clearTurnTimer(payload.room.id);
+        } catch (e) { console.error(e); }
+    }
+
     public startGame(socket: Socket, payload: { room: { id: string }, player: { id: string } }) {
         try {
             const room = this.server.getRoom(payload.room.id);
@@ -86,6 +93,7 @@ export default class GameController {
                     turnMs: TURN_TIMEOUT_MS,
                     interTurnDelayMs: INTER_TURN_DELAY_MS,
                     lifeLossRevealMs: LIFE_LOSS_REVEAL_MS,
+                    bluffCallAnimMs: BLUFF_CALL_ANIM_MS,
                     dealAnimationMs,
                 }
             });

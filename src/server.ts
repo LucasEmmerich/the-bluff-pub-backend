@@ -50,8 +50,9 @@ io.on('connection', (socket: Socket) => {
   socket.on('join-room',   payload => roomController.joinRoom(socket, payload));
   socket.on('left-room',   payload => roomController.leaveRoom(socket, payload.id));
 
-  socket.on('game-start',  payload => gameController.startGame(socket, payload));
-  socket.on('drop-cards',  payload => gameController.dropCards(socket, payload));
+  socket.on('game-start',    payload => gameController.startGame(socket, payload));
+  socket.on('bluff-intent',  payload => gameController.bluffIntent(socket, payload));
+  socket.on('drop-cards',    payload => gameController.dropCards(socket, payload));
 
   socket.on('webrtc-join',   ({ roomId }: { roomId: string }) => socket.to(roomId).emit('webrtc-user-joined', { from: socket.id }));
   socket.on('webrtc-offer',  ({ to, offer }: { to: string; offer: unknown })    => io.to(to).emit('webrtc-offer',  { from: socket.id, offer }));
