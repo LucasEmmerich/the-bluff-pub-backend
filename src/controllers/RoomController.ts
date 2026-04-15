@@ -36,8 +36,8 @@ export default class RoomController {
       socket.join(room.id);
       socket.emit("self-joined", newPlayer);
       this.io.to(room.id).emit("player-joined", room);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      socket.emit("send-notification", { type: "error", message: error.message });
     }
   }
 

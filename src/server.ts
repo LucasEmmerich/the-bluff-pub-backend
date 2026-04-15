@@ -59,5 +59,10 @@ io.on('connection', (socket: Socket) => {
   socket.on('webrtc-ice',    ({ to, candidate }: { to: string; candidate: unknown }) => io.to(to).emit('webrtc-ice', { from: socket.id, candidate }));
   socket.on('webrtc-leave',  ({ roomId }: { roomId: string }) => socket.to(roomId).emit('webrtc-user-left', { from: socket.id }));
 
+  socket.on('room-chat-message', ({ roomId, message }: { roomId: string, message: any }) => {
+    const msg = { ...message, id: Date.now() };
+    io.to(roomId).emit('room-chat-message', msg);
+  });
+
   socket.on('ping-check', (timestamp: number) => socket.emit('pong-check', timestamp));
 });

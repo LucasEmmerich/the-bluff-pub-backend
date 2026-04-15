@@ -49,6 +49,10 @@ export default class GameController {
                 }
                 const result = room.game.forfeitTurn();
                 this.io.to(roomId).emit('turn-timeout', { game: room.game, result });
+                if (result.gameOver && result.winner) {
+                    room.recordWin((result.winner as any).id);
+                    this.io.to(roomId).emit('leaderboard-updated', room.leaderboard);
+                }
                 if (!result.gameOver) setTimeout(() => this.resolveSkips(roomId), LIFE_LOSS_REVEAL_MS + INTER_TURN_DELAY_MS);
             } catch (e) { console.error(e); }
         }, TURN_TIMEOUT_MS);
@@ -72,10 +76,12 @@ export default class GameController {
                 return;
             }
             room.game = new Game(room.players);
+            room.ensurePlayersInLeaderboard();
             const totalCards = 5 * room.players.length;
             const dealAnimationMs = 200 + (totalCards - 1) * 180 + 750 + 400;
             this.io.to(room.id).emit('game-started', {
                 ...room.game,
+                leaderboard: room.leaderboard,
                 timing: {
                     turnMs: TURN_TIMEOUT_MS,
                     interTurnDelayMs: INTER_TURN_DELAY_MS,
@@ -98,6 +104,10 @@ export default class GameController {
             if (move.liarCall) {
                 const result = room.game!.callBluff(move.player);
                 this.io.to(room.id).emit('bluff-called', { game: room.game, result });
+                if (result.gameOver && result.winner) {
+                    room.recordWin((result.winner as any).id);
+                    this.io.to(room.id).emit('leaderboard-updated', room.leaderboard);
+                }
             } else {
                 room.game!.dropCards(move);
                 this.io.to(room.id).emit('cards-dropped', room.game);
