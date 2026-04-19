@@ -53,6 +53,11 @@ io.on('connection', (socket: Socket) => {
   socket.on('game-start',    payload => gameController.startGame(socket, payload));
   socket.on('bluff-intent',  payload => gameController.bluffIntent(socket, payload));
   socket.on('drop-cards',    payload => gameController.dropCards(socket, payload));
+  socket.on('give-up',       payload => gameController.giveUp(socket, payload));
+
+  if (process.env.NODE_ENV !== 'production') {
+    socket.on('dev-sandbox', payload => gameController.devSandbox(socket, payload));
+  }
 
   socket.on('webrtc-join',   ({ roomId }: { roomId: string }) => socket.to(roomId).emit('webrtc-user-joined', { from: socket.id }));
   socket.on('webrtc-offer',  ({ to, offer }: { to: string; offer: unknown })    => io.to(to).emit('webrtc-offer',  { from: socket.id, offer }));

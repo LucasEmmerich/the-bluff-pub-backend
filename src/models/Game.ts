@@ -156,6 +156,23 @@ export default class Game {
         };
     }
 
+    public giveUp(playerId: string): BluffResult {
+        const hand = this.hands.find(h => h.player.id === playerId)!;
+        const wasCurrentTurn = this.turn.id === playerId;
+        hand.life = 0;
+        this.eliminatePlayer(playerId);
+        const gameOver = this.players.length <= 1;
+        if (!gameOver && wasCurrentTurn) this.startNewRound();
+        return {
+            bluffed: false,
+            loser: hand.player,
+            eliminated: true,
+            gameOver,
+            winner: gameOver ? this.players[0] : undefined,
+            tableCards: [],
+        };
+    }
+
     public callBluff(callerPlayer: Player): BluffResult {
         if (this.table.moves.length === 0) {
             throw new Error('Não há jogadas para chamar de mentiroso.');
