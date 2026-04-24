@@ -1,67 +1,67 @@
-import Server from "../models/Server.js";
-import Room from "../models/Room.js";
-import Player from "../models/Player.js";
-import { Socket, Server as SocketIOServer } from "socket.io";
+import Server from '../models/Server.js';
+import Room from '../models/Room.js';
+import Player from '../models/Player.js';
+import { Socket, Server as SocketIOServer } from 'socket.io';
 
 export default class RoomController {
-  private server: Server;
-  private io: SocketIOServer;
+    private server: Server;
+    private io: SocketIOServer;
 
-  constructor(server: Server, io: SocketIOServer) {
-    this.server = server;
-    this.io = io;
-  }
-
-  public createRoom(socket: Socket, payload: { mainPlayer: Player }) {
-    try {
-      const { username, avatar } = payload.mainPlayer;
-      const roomOwner = new Player(socket.id, username, avatar);
-      const newRoom = new Room(new Date().getTime().toString(36).toUpperCase(), roomOwner);
-      this.server.addRoom(newRoom);
-
-      socket.join(newRoom.id);
-      socket.emit("room-created", newRoom);
-      this.io.to(newRoom.id).emit("player-joined", newRoom);
-    } catch (error) {
-      console.error(error);
+    constructor(server: Server, io: SocketIOServer) {
+        this.server = server;
+        this.io = io;
     }
-  }
 
-  public joinRoom(socket: Socket, payload: { id?: string, enterRoomId: string, mainPlayer: Player }) {
-    try {
-      const room: Room = this.server.getRoom(payload.id || payload.enterRoomId);
-      const newPlayer = new Player(socket.id, payload.mainPlayer.username, payload.mainPlayer.avatar);
-      room.addPlayer(newPlayer);
+    public createRoom(socket: Socket, payload: { mainPlayer: Player }) {
+        try {
+            const { username, avatar } = payload.mainPlayer;
+            const roomOwner = new Player(socket.id, username, avatar);
+            const newRoom = new Room(new Date().getTime().toString(36).toUpperCase(), roomOwner);
+            this.server.addRoom(newRoom);
 
-      socket.join(room.id);
-      socket.emit("self-joined", newPlayer);
-      this.io.to(room.id).emit("player-joined", room);
-    } catch (error: any) {
-      socket.emit("send-notification", { type: "error", message: error.message });
+            socket.join(newRoom.id);
+            socket.emit('room-created', newRoom);
+            this.io.to(newRoom.id).emit('player-joined', newRoom);
+        } catch (error) {
+            console.error(error);
+        }
     }
-  }
 
-  public leaveRoom(socket: Socket, roomId: string) {
-    try {
-      const room = this.server.getRoom(roomId);
-      if (!room) return;
+    public joinRoom(socket: Socket, payload: { id?: string; enterRoomId: string; mainPlayer: Player }) {
+        try {
+            const room: Room = this.server.getRoom(payload.id || payload.enterRoomId);
+            const newPlayer = new Player(socket.id, payload.mainPlayer.username, payload.mainPlayer.avatar);
+            room.addPlayer(newPlayer);
 
-      const playerThatLeft = room.removePlayer(socket.id);
-
-      if (room.players.length === 0) {
-        this.server.removeRoom(room.id);
-      } else {
-        this.io.to(room.id).emit("player-left", room, playerThatLeft);
-      }
-
-      socket.leave(room.id);
-    } catch (error) {
-      console.error(error);
+            socket.join(room.id);
+            socket.emit('self-joined', newPlayer);
+            this.io.to(room.id).emit('player-joined', room);
+        } catch (error: unknown) {
+            socket.emit('send-notification', { type: 'error', message: (error as Error).message });
+        }
     }
-  }
 
-  public handleDisconnect(socket: Socket) {
-    const room = this.server.findRoomBySocketId(socket.id);
-    if (room) this.leaveRoom(socket, room.id);
-  }
+    public leaveRoom(socket: Socket, roomId: string) {
+        try {
+            const room = this.server.getRoom(roomId);
+            if (!room) return;
+
+            const playerThatLeft = room.removePlayer(socket.id);
+
+            if (room.players.length === 0) {
+                this.server.removeRoom(room.id);
+            } else {
+                this.io.to(room.id).emit('player-left', room, playerThatLeft);
+            }
+
+            socket.leave(room.id);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    public handleDisconnect(socket: Socket) {
+        const room = this.server.findRoomBySocketId(socket.id);
+        if (room) this.leaveRoom(socket, room.id);
+    }
 }

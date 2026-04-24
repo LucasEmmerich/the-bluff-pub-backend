@@ -1,5 +1,5 @@
-import Room from "./Room.js";
-import { Server as SocketIOServer } from "socket.io";
+import Room from './Room.js';
+import { Server as SocketIOServer } from 'socket.io';
 
 export default class Server {
     private io: SocketIOServer;
@@ -18,25 +18,27 @@ export default class Server {
         console.log('Server events registered.');
     }
 
-    public getRoom = (roomId: string) => this.rooms.find(x => x.id === roomId)!;
+    public getRoom = (roomId: string) => this.rooms.find((x) => x.id === roomId)!;
 
-    public findRoomBySocketId = (socketId: string) => this.rooms.find(r => r.players.some(p => p.id === socketId));
+    public findRoomBySocketId = (socketId: string) => this.rooms.find((r) => r.players.some((p) => p.id === socketId));
 
     public addRoom = (room: Room) => this.rooms.push(room);
 
-    public removeRoom = (roomId: string) => { this.rooms = this.rooms.filter(r => r.id !== roomId); };
+    public removeRoom = (roomId: string) => {
+        this.rooms = this.rooms.filter((r) => r.id !== roomId);
+    };
 
     private cleanEmptyRooms = () => {
-        this.rooms = this.rooms.filter(x => x.players.length > 0);
-    }
+        this.rooms = this.rooms.filter((x) => x.players.length > 0);
+    };
 
     public getServerInfo = () => ({
         online: this.activeSessions.size,
         playing: this.rooms.reduce((acc, room) => acc + room.players.length, 0),
-        rooms: this.rooms.length
+        rooms: this.rooms.length,
     });
 
     private updateServerInfo = () => {
         this.io.emit('server-info', this.getServerInfo());
-    }
+    };
 }

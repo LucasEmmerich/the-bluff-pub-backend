@@ -1,24 +1,24 @@
-import Player from "../models/Player.js";
+import Player from '../models/Player.js';
 
 const DECK: Array<Card> = [
-    { id: 1,  name: 'King',  values: ['King'],                img: '/cards/king.png' },
-    { id: 2,  name: 'King',  values: ['King'],                img: '/cards/king.png' },
-    { id: 3,  name: 'King',  values: ['King'],                img: '/cards/king.png' },
-    { id: 4,  name: 'King',  values: ['King'],                img: '/cards/king.png' },
-    { id: 5,  name: 'King',  values: ['King'],                img: '/cards/king.png' },
-    { id: 6,  name: 'King',  values: ['King'],                img: '/cards/king.png' },
-    { id: 7,  name: 'Queen', values: ['Queen'],               img: '/cards/queen.png' },
-    { id: 8,  name: 'Queen', values: ['Queen'],               img: '/cards/queen.png' },
-    { id: 9,  name: 'Queen', values: ['Queen'],               img: '/cards/queen.png' },
-    { id: 10, name: 'Queen', values: ['Queen'],               img: '/cards/queen.png' },
-    { id: 11, name: 'Queen', values: ['Queen'],               img: '/cards/queen.png' },
-    { id: 12, name: 'Queen', values: ['Queen'],               img: '/cards/queen.png' },
-    { id: 13, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
-    { id: 14, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
-    { id: 15, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
-    { id: 16, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
-    { id: 17, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
-    { id: 18, name: 'Jack',   values: ['Jack'],                 img: '/cards/jack.png' },
+    { id: 1, name: 'King', values: ['King'], img: '/cards/king.png' },
+    { id: 2, name: 'King', values: ['King'], img: '/cards/king.png' },
+    { id: 3, name: 'King', values: ['King'], img: '/cards/king.png' },
+    { id: 4, name: 'King', values: ['King'], img: '/cards/king.png' },
+    { id: 5, name: 'King', values: ['King'], img: '/cards/king.png' },
+    { id: 6, name: 'King', values: ['King'], img: '/cards/king.png' },
+    { id: 7, name: 'Queen', values: ['Queen'], img: '/cards/queen.png' },
+    { id: 8, name: 'Queen', values: ['Queen'], img: '/cards/queen.png' },
+    { id: 9, name: 'Queen', values: ['Queen'], img: '/cards/queen.png' },
+    { id: 10, name: 'Queen', values: ['Queen'], img: '/cards/queen.png' },
+    { id: 11, name: 'Queen', values: ['Queen'], img: '/cards/queen.png' },
+    { id: 12, name: 'Queen', values: ['Queen'], img: '/cards/queen.png' },
+    { id: 13, name: 'Jack', values: ['Jack'], img: '/cards/jack.png' },
+    { id: 14, name: 'Jack', values: ['Jack'], img: '/cards/jack.png' },
+    { id: 15, name: 'Jack', values: ['Jack'], img: '/cards/jack.png' },
+    { id: 16, name: 'Jack', values: ['Jack'], img: '/cards/jack.png' },
+    { id: 17, name: 'Jack', values: ['Jack'], img: '/cards/jack.png' },
+    { id: 18, name: 'Jack', values: ['Jack'], img: '/cards/jack.png' },
     { id: 19, name: 'Joker', values: ['King', 'Queen', 'Jack'], img: '/cards/joker.png' },
     { id: 20, name: 'Joker', values: ['King', 'Queen', 'Jack'], img: '/cards/joker.png' },
 ];
@@ -81,7 +81,8 @@ export default class Game {
     }
 
     private getShuffledDeck = (): Card[] => [...DECK].sort(() => Math.random() - 0.5);
-    private getRandomCardType = (): 'King' | 'Queen' | 'Jack' => this.cardTypes[Math.floor(Math.random() * this.cardTypes.length)];
+    private getRandomCardType = (): 'King' | 'Queen' | 'Jack' =>
+        this.cardTypes[Math.floor(Math.random() * this.cardTypes.length)];
     private getRandomPlayer = (): Player => this.players[Math.floor(Math.random() * this.players.length)];
 
     private dealHands = (): Hand[] => {
@@ -100,8 +101,8 @@ export default class Game {
     };
 
     private eliminatePlayer = (playerId: string) => {
-        this.players = this.players.filter(p => p.id !== playerId);
-        this.hands = this.hands.filter(h => h.player.id !== playerId);
+        this.players = this.players.filter((p) => p.id !== playerId);
+        this.hands = this.hands.filter((h) => h.player.id !== playerId);
     };
 
     private startNewRound = () => {
@@ -113,17 +114,16 @@ export default class Game {
     };
 
     private removeCardsFromPlayerHand = (move: Move) => {
-        const hand = this.hands.find(h => h.player.id === move.player.id)!;
-        hand.cards = hand.cards.filter(c => !move.cardsDropped.some(d => d.id === c.id));
+        const hand = this.hands.find((h) => h.player.id === move.player.id)!;
+        hand.cards = hand.cards.filter((c) => !move.cardsDropped.some((d) => d.id === c.id));
     };
 
     private setNextPlayer = () => {
-        const currentIndex = this.players.findIndex(p => p.id === this.turn.id);
+        const currentIndex = this.players.findIndex((p) => p.id === this.turn.id);
         this.turn = this.players[(currentIndex + 1) % this.players.length];
     };
 
-    private lastPlayerBluffed = (): boolean =>
-        !this.table.cards.every(card => card.values.includes(this.cardType));
+    private lastPlayerBluffed = (): boolean => !this.table.cards.every((card) => card.values.includes(this.cardType));
 
     private getLastMove = (): Move => this.table.moves[this.table.moves.length - 1];
 
@@ -140,7 +140,7 @@ export default class Game {
     }
 
     public forfeitTurn(): BluffResult {
-        const currentHand = this.hands.find(h => h.player.id === this.turn.id)!;
+        const currentHand = this.hands.find((h) => h.player.id === this.turn.id)!;
         currentHand.life--;
         const eliminated = currentHand.life <= 0;
         if (eliminated) this.eliminatePlayer(currentHand.player.id);
@@ -157,7 +157,7 @@ export default class Game {
     }
 
     public giveUp(playerId: string): BluffResult {
-        const hand = this.hands.find(h => h.player.id === playerId)!;
+        const hand = this.hands.find((h) => h.player.id === playerId)!;
         const wasCurrentTurn = this.turn.id === playerId;
         hand.life = 0;
         this.eliminatePlayer(playerId);
@@ -180,8 +180,8 @@ export default class Game {
 
         const tableCards = [...this.table.cards];
         const lastMove = this.getLastMove();
-        const lastHand = this.hands.find(h => h.player.id === lastMove.player.id)!;
-        const callerHand = this.hands.find(h => h.player.id === callerPlayer.id)!;
+        const lastHand = this.hands.find((h) => h.player.id === lastMove.player.id)!;
+        const callerHand = this.hands.find((h) => h.player.id === callerPlayer.id)!;
 
         const bluffed = this.lastPlayerBluffed();
         const loserHand = bluffed ? lastHand : callerHand;

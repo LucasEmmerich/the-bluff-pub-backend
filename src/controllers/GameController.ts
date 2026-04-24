@@ -1,8 +1,8 @@
-import Server from "../models/Server.js";
-import Game, { Move } from "../models/Game.js";
-import Room from "../models/Room.js";
-import Player from "../models/Player.js";
-import { Socket, Server as SocketIOServer } from "socket.io";
+import Server from '../models/Server.js';
+import Game, { Move } from '../models/Game.js';
+import Room from '../models/Room.js';
+import Player from '../models/Player.js';
+import { Socket, Server as SocketIOServer } from 'socket.io';
 
 const TURN_TIMEOUT_MS = 20000;
 const INTER_TURN_DELAY_MS = 2000;
@@ -22,7 +22,7 @@ export default class GameController {
     private currentPlayerHasNoCards(roomId: string): boolean {
         const room = this.server.getRoom(roomId);
         if (!room || !room.game) return false;
-        const hand = room.game.hands.find(h => h.player.id === room.game!.turn.id);
+        const hand = room.game.hands.find((h) => h.player.id === room.game!.turn.id);
         return (hand?.cards.length ?? 1) === 0;
     }
 
@@ -53,32 +53,43 @@ export default class GameController {
                 const result = room.game.forfeitTurn();
                 this.io.to(roomId).emit('turn-timeout', { game: room.game, result });
                 if (result.gameOver && result.winner) {
-                    room.recordWin((result.winner as any).id);
+                    room.recordWin(result.winner.id);
                     this.io.to(roomId).emit('leaderboard-updated', room.leaderboard);
                 }
-                if (!result.gameOver) setTimeout(() => this.resolveSkips(roomId), LIFE_LOSS_REVEAL_MS + INTER_TURN_DELAY_MS);
-            } catch (e) { console.error(e); }
+                if (!result.gameOver)
+                    setTimeout(() => this.resolveSkips(roomId), LIFE_LOSS_REVEAL_MS + INTER_TURN_DELAY_MS);
+            } catch (e) {
+                console.error(e);
+            }
         }, TURN_TIMEOUT_MS);
         this.turnTimers.set(roomId, timer);
     }
 
     private clearTurnTimer(roomId: string) {
         const existing = this.turnTimers.get(roomId);
-        if (existing) { clearTimeout(existing); this.turnTimers.delete(roomId); }
+        if (existing) {
+            clearTimeout(existing);
+            this.turnTimers.delete(roomId);
+        }
     }
 
-    public bluffIntent(_socket: Socket, payload: { room: { id: string }, callerId: string }) {
+    public bluffIntent(_socket: Socket, payload: { room: { id: string }; callerId: string }) {
         try {
             this.clearTurnTimer(payload.room.id);
             this.io.to(payload.room.id).emit('bluff-intent', { callerId: payload.callerId });
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+        }
     }
 
-    public startGame(socket: Socket, payload: { room: { id: string }, player: { id: string } }) {
+    public startGame(socket: Socket, payload: { room: { id: string }; player: { id: string } }) {
         try {
             const room = this.server.getRoom(payload.room.id);
             if (room.roomOwner?.id !== payload.player.id) {
-                socket.emit('send-notification', { type: 'error', message: 'Only the table owner can start the game.' });
+                socket.emit('send-notification', {
+                    type: 'error',
+                    message: 'Only the table owner can start the game.',
+                });
                 return;
             }
             if (room.players.length < 2) {
@@ -98,7 +109,7 @@ export default class GameController {
                     lifeLossRevealMs: LIFE_LOSS_REVEAL_MS,
                     bluffCallAnimMs: BLUFF_CALL_ANIM_MS,
                     dealAnimationMs,
-                }
+                },
             });
             setTimeout(() => this.startTurnTimer(room.id), dealAnimationMs);
         } catch (error) {
@@ -114,7 +125,7 @@ export default class GameController {
 
         const count = Math.min(Math.max(payload.playerCount, 2), 4);
         for (let i = 0; i < count - 1; i++) {
-            room.players.push(new Player(`bot-${i}-${Date.now()}`, BOT_NAMES[i], String(i + 1)));
+            room.players.push(new Player(`bot-${i}-${Date.now()}`, BOT_NAMES[i], i + 1));
         }
         room.ensurePlayersInLeaderboard();
 
@@ -136,13 +147,13 @@ export default class GameController {
                     lifeLossRevealMs: LIFE_LOSS_REVEAL_MS,
                     bluffCallAnimMs: BLUFF_CALL_ANIM_MS,
                     dealAnimationMs,
-                }
+                },
             });
             setTimeout(() => this.startTurnTimer(room.id), dealAnimationMs);
         }, 150);
     }
 
-    public giveUp(socket: Socket, payload: { room: { id: string }, playerId: string }) {
+    public giveUp(socket: Socket, payload: { room: { id: string }; playerId: string }) {
         try {
             const room = this.server.getRoom(payload.room.id);
             if (!room || !room.game || !room.game.matchStarted) return;
@@ -151,14 +162,16 @@ export default class GameController {
             const result = room.game.giveUp(payload.playerId);
             this.io.to(room.id).emit('player-gave-up', { game: room.game, result });
             if (result.gameOver && result.winner) {
-                room.recordWin((result.winner as any).id);
+                room.recordWin(result.winner.id);
                 this.io.to(room.id).emit('leaderboard-updated', room.leaderboard);
             }
             if (!result.gameOver && wasCurrentTurn) setTimeout(() => this.resolveSkips(room.id), INTER_TURN_DELAY_MS);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+        }
     }
 
-    public dropCards(socket: Socket, payload: { room: { id: string }, move: Move }) {
+    public dropCards(socket: Socket, payload: { room: { id: string }; move: Move }) {
         try {
             const { move } = payload;
             const room = this.server.getRoom(payload.room.id);
@@ -168,7 +181,7 @@ export default class GameController {
                 const result = room.game!.callBluff(move.player);
                 this.io.to(room.id).emit('bluff-called', { game: room.game, result, callerId: move.player.id });
                 if (result.gameOver && result.winner) {
-                    room.recordWin((result.winner as any).id);
+                    room.recordWin(result.winner.id);
                     this.io.to(room.id).emit('leaderboard-updated', room.leaderboard);
                 }
             } else {
